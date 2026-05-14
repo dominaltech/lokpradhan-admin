@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — लोकप्रधान न्यूज</title>
+    <link rel="icon" type="image/jpeg" href="admin.png">
+    <link rel="apple-touch-icon" href="admin.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="pwa.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --red: #C62828;
+            --red-dark: #8E0000;
+            --red-light: #ef5350;
+            --red-bg: #fff5f5;
+            --gold: #F57F17;
+            --white: #fff;
+            --black: #1A1A1A;
+            --gray-50: #FAFAFA;
+            --gray-100: #F5F5F5;
+            --gray-200: #EEEEEE;
+            --gray-300: #E0E0E0;
+            --gray-400: #BDBDBD;
+            --gray-500: #9E9E9E;
+            --gray-600: #757575;
+            --gray-700: #616161;
+            --gray-800: #424242;
+            --blue: #1565C0;
+            --blue-bg: #E3F2FD;
+            --green: #2E7D32;
+            --green-bg: #E8F5E9;
+            --orange: #E65100;
+            --orange-bg: #FFF3E0;
+            --purple: #6A1B9A;
+            --purple-bg: #F3E5F5;
+            --sidebar-w: 240px;
+            --text-xs: clamp(0.75rem, 0.7rem+0.25vw, 0.875rem);
+            --text-sm: clamp(0.875rem, 0.8rem+0.35vw, 1rem);
+            --text-base: clamp(1rem, 0.95rem+0.25vw, 1.125rem);
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+            --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.13);
+            --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            -webkit-text-size-adjust: none;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Mukta', sans-serif;
+            background: var(--gray-100);
+            color: var(--black);
+            min-height: 100vh;
+            font-size: var(--text-sm);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        input,
+        textarea,
+        select {
+            font-family: inherit;
+        }
+
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #1a0000 0%, #8E0000 40%, #C62828 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8) var(--space-6);
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .login-logo-main {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--red);
+            font-family: 'Noto Sans Devanagari', 'Mukta', sans-serif;
+        }
+
+        .login-logo-sub {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 2px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .login-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--red-bg);
+            color: var(--red);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            margin-top: var(--space-2);
+            letter-spacing: 0.5px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .login-form label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-700);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .login-form input {
+            width: 100%;
+            height: 46px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 0 var(--space-4);
+            font-size: 14px;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .login-form input:focus {
+            border-color: var(--red);
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 46px;
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 15px;
+            font-weight: 800;
+            transition: background var(--transition);
+        }
+
+        .login-btn:hover {
+            background: var(--red-dark);
+        }
+
+        .login-error {
+            background: #FFEBEE;
+            color: var(--red);
+            border-radius: var(--radius-md);
+            padding: 10px var(--space-3);
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            text-align: center;
+        }
+
+        .login-error.show {
+            display: block;
+        }
+
+        /* ===== APP SHELL ===== */
+        #appShell {
+            display: none;
+        }
+
+        #appShell.show {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .admin-sidebar {
+            width: var(--sidebar-w);
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .sb-head {
+            background: var(--red-dark);
+            padding: var(--space-4) var(--space-4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sb-logo {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--white);
+            font-family: 'Noto Sans Devanagari', 'Mukta', sans-serif;
+        }
+
+        .sb-sub {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .sb-admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--red);
+            color: var(--white);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            margin-top: var(--space-2);
+        }
+
+        .sb-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-3) 0;
+        }
+
+        .sb-section {
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: var(--space-2) var(--space-4) var(--space-1);
+        }
+
+        .sb-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: 11px var(--space-4);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .sb-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--white);
+        }
+
+        .sb-item.active {
+            background: rgba(198, 40, 40, 0.15);
+            color: var(--white);
+            border-left-color: var(--red);
+        }
+
+        .sb-item i {
+            width: 18px;
+            font-size: 14px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .sb-item.active i {
+            opacity: 1;
+            color: var(--red-light);
+        }
+
+        .sb-foot {
+            padding: var(--space-4);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sb-logout {
+            width: 100%;
+            padding: 9px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            transition: all var(--transition);
+        }
+
+        .sb-logout:hover {
+            background: var(--red);
+            color: var(--white);
+            border-color: var(--red);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .admin-main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .admin-topbar {
+            height: 56px;
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            padding: 0 var(--space-5);
+            gap: var(--space-4);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .topbar-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--black);
+            flex: 1;
+        }
+
+        .topbar-date {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .mob-menu-btn {
+            display: none;
+            border: none;
+            background: none;
+            font-size: 20px;
+            color: var(--gray-800);
+        }
+
+        .admin-body {
+            padding: var(--space-5);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        /* ===== PANELS ===== */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ===== STAT CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            border: 1px solid oklch(0 0 0/0.04);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.red {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .stat-icon.blue {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .stat-icon.green {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .stat-icon.orange {
+            background: var(--orange-bg);
+            color: var(--orange);
+        }
+
+        .stat-icon.purple {
+            background: var(--purple-bg);
+            color: var(--purple);
+        }
+
+        .stat-num {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* ===== SECTION CARD ===== */
+        .section-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid oklch(0 0 0/0.04);
+            overflow: hidden;
+        }
+
+        .sc-head {
+            padding: var(--space-4) var(--space-5);
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .sc-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--black);
+            flex: 1;
+        }
+
+        .sc-body {
+            padding: var(--space-4) var(--space-5);
+        }
+
+        /* ===== BTN ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            transition: all var(--transition);
+            font-family: 'Mukta', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background: #1B5E20;
+        }
+
+        .btn-danger {
+            background: #FFEBEE;
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: 6px var(--space-3);
+            font-size: 12px;
+        }
+
+        .btn-blue {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .btn-blue:hover {
+            background: var(--blue);
+            color: var(--white);
+        }
+
+        /* ===== FORM ===== */
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-700);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 9px var(--space-3);
+            font-size: 13px;
+            outline: none;
+            color: var(--black);
+            transition: border-color var(--transition);
+            background: var(--white);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.07);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: flex-end;
+            padding-top: var(--space-2);
+        }
+
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: var(--gray-300);
+            border-radius: var(--radius-full);
+            position: relative;
+            cursor: pointer;
+            transition: background var(--transition);
+            border: none;
+            flex-shrink: 0;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: var(--white);
+            border-radius: var(--radius-full);
+            transition: transform var(--transition);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle.on {
+            background: var(--green);
+        }
+
+        .toggle.on::after {
+            transform: translateX(20px);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* ===== TABLE ===== */
+        .tbl-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--gray-50);
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px var(--space-3);
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        td {
+            padding: 11px var(--space-3);
+            font-size: 13px;
+            color: var(--black);
+            border-bottom: 1px solid var(--gray-100);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: var(--gray-50);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .badge-red {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .badge-green {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .badge-blue {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .badge-gray {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .badge-orange {
+            background: var(--orange-bg);
+            color: var(--orange);
+        }
+
+        .badge-gold {
+            background: #FFF8E1;
+            color: var(--gold);
+        }
+
+        .yt-thumb {
+            width: 80px;
+            height: 45px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--gray-200);
+        }
+
+        .td-actions {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            padding: var(--space-4);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-head {
+            padding: var(--space-4) var(--space-5);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 800;
+            flex: 1;
+            color: var(--black);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: var(--space-5);
+            overflow-y: auto;
+        }
+
+        /* ===== CONFIRM DIALOG ===== */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .confirm-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .confirm-box {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .confirm-icon {
+            font-size: 36px;
+            color: var(--red);
+            margin-bottom: var(--space-3);
+        }
+
+        .confirm-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: var(--space-2);
+        }
+
+        .confirm-sub {
+            font-size: 13px;
+            color: var(--gray-600);
+            margin-bottom: var(--space-5);
+        }
+
+        .confirm-btns {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .confirm-btns .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--black);
+            color: var(--white);
+            padding: 10px var(--space-5);
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateY(80px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: var(--green);
+        }
+
+        .toast.error {
+            background: var(--red);
+        }
+
+        /* ===== UPLOAD AREA ===== */
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8) var(--space-4);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            background: var(--gray-50);
+        }
+
+        .upload-area:hover,
+        .upload-area.drag {
+            border-color: var(--red);
+            background: var(--red-bg);
+        }
+
+        .upload-area i {
+            font-size: 32px;
+            color: var(--gray-400);
+            margin-bottom: var(--space-2);
+        }
+
+        .upload-area.drag i {
+            color: var(--red);
+        }
+
+        .upload-area p {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        .upload-area strong {
+            color: var(--red);
+        }
+
+        .upload-progress {
+            margin-top: var(--space-3);
+            background: var(--gray-200);
+            border-radius: var(--radius-full);
+            height: 6px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .upload-progress-bar {
+            height: 100%;
+            background: var(--red);
+            border-radius: var(--radius-full);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .upload-result {
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            background: var(--green-bg);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 600;
+            display: none;
+            word-break: break-all;
+        }
+
+        /* ===== MARKET RATES ===== */
+        .rates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .rate-card {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            border: 1.5px solid var(--gray-200);
+        }
+
+        .rate-card-head {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .rate-icon {
+            font-size: 20px;
+        }
+
+        .rate-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--black);
+        }
+
+        .rate-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .rate-inputs input {
+            height: 38px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 0 var(--space-3);
+            font-size: 13px;
+            outline: none;
+            background: var(--white);
+        }
+
+        .rate-inputs input:focus {
+            border-color: var(--red);
+        }
+
+        .rate-inputs label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray-600);
+        }
+
+        /* ===== CONTACTS ===== */
+        .contact-row td {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: var(--radius-full);
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            padding: var(--space-10) var(--space-4);
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: var(--space-3);
+            color: var(--gray-300);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ===== LANG TABS ===== */
+        .lang-tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            padding: 3px;
+            border: 1px solid var(--gray-200);
+            width: fit-content;
+            margin-bottom: var(--space-4);
+        }
+
+        .lang-tab {
+            border: none;
+            background: none;
+            padding: 5px 14px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-600);
+            transition: all var(--transition);
+        }
+
+        .lang-tab.active {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .qa-btn {
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .qa-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+            background: var(--red-bg);
+        }
+
+        .qa-btn i {
+            font-size: 24px;
+        }
+
+        /* RESPONSIVE */
+        @media(max-width:768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.mob-open {
+                transform: translateX(0);
+            }
+
+            .mob-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+                display: none;
+            }
+
+            .mob-overlay.show {
+                display: block;
+            }
+
+            .admin-main {
+                margin-left: 0;
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .admin-body {
+                padding: var(--space-3);
+                gap: var(--space-3);
+            }
+
+            .sc-body {
+                padding: var(--space-3) var(--space-3);
+            }
+
+            .sc-head {
+                padding: var(--space-3) var(--space-3);
+            }
+
+            .mob-menu-btn {
+                display: flex;
+            }
+
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .rates-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .modal-overlay {
+                padding: var(--space-2);
+            }
+
+            .modal-body {
+                padding: var(--space-3);
+            }
+        }
+
+        @media(min-width:640px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== LOGIN ===== -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-main">लोकप्रधान न्यूज</div>
+                <div class="login-logo-sub">Admin Panel</div>
+                <div class="login-badge"><i class="fas fa-lock"></i> Secure Access</div>
+            </div>
+            <form class="login-form" onsubmit="doLogin(event)">
+                <div><label>Username</label><input type="text" id="loginUser" placeholder="admin"
+                        autocomplete="username"></div>
+                <div><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"
+                        autocomplete="current-password"></div>
+                <div class="login-error" id="loginError">❌ Invalid username or password</div>
+                <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mob-overlay" id="mobOverlay" onclick="closeMobSidebar()"></div>
+
+    <!-- ===== APP SHELL ===== -->
+    <div id="appShell">
+
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sb-head">
+                <div class="sb-logo">लोकप्रधान न्यूज</div>
+                <div class="sb-sub">Dainik News Portal</div>
+                <div class="sb-admin-badge"><i class="fas fa-user-shield"></i> Admin</div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-section">Overview</div>
+                <div class="sb-item active" onclick="showPanel('dashboard',this)"><i
+                        class="fas fa-tachometer-alt"></i>Dashboard</div>
+                <div class="sb-section">Content</div>
+                <div class="sb-item" onclick="showPanel('blogs',this)"><i class="fas fa-newspaper"></i>Blogs</div>
+                <div class="sb-item" onclick="showPanel('youtube',this)"><i class="fab fa-youtube"></i>YouTube Videos
+                </div>
+                <div class="sb-item" onclick="showPanel('epaper',this)"><i class="fas fa-file-pdf"></i>E-Papers</div>
+                <div class="sb-section">Settings</div>
+                <!-- Market Rates removed as it is updated via API -->
+                <div class="sb-item" onclick="showPanel('contacts',this)"><i class="fas fa-envelope"></i>Contacts <span
+                        id="unreadBadge"
+                        style="background:var(--red);color:white;font-size:10px;font-weight:800;padding:1px 6px;border-radius:var(--radius-full);margin-left:auto;display:none;">0</span>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <button class="sb-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <button class="mob-menu-btn" onclick="openMobSidebar()"><i class="fas fa-bars"></i></button>
+                <div class="topbar-title" id="topbarTitle">Dashboard</div>
+                <button id="adminInstallBtn" class="btn btn-success btn-sm" style="display:none; margin-left: auto; margin-right: 15px;">
+                    <i class="fas fa-download"></i> Install App
+                </button>
+                <div class="topbar-date" id="topbarDate"></div>
+            </div>
+
+            <div class="admin-body">
+
+                <!-- ===== DASHBOARD ===== -->
+                <div class="panel active" id="panel-dashboard">
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-icon red"><i class="fas fa-newspaper"></i></div>
+                            <div>
+                                <div class="stat-num" id="statBlogs">–</div>
+                                <div class="stat-label">Total Blogs</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fab fa-youtube"></i></div>
+                            <div>
+                                <div class="stat-num" id="statVideos">–</div>
+                                <div class="stat-label">YouTube Videos</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fas fa-file-pdf"></i></div>
+                            <div>
+                                <div class="stat-num" id="statEpapers">–</div>
+                                <div class="stat-label">E-Papers</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fas fa-envelope"></i></div>
+                            <div>
+                                <div class="stat-num" id="statContacts">–</div>
+                                <div class="stat-label">Contacts</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-bolt"
+                                    style="color:var(--gold);margin-right:6px;"></i>Quick Actions</div>
+                        </div>
+                        <div class="sc-body">
+                            <div class="quick-actions">
+                                <button class="qa-btn" onclick="showPanel('blogs',null);openBlogModal()"><i
+                                        class="fas fa-plus-circle" style="color:var(--red);"></i>New Blog</button>
+                                <button class="qa-btn" onclick="showPanel('youtube',null);openVideoModal()"><i
+                                        class="fab fa-youtube" style="color:#FF0000;"></i>Add Video</button>
+                                <button class="qa-btn" onclick="showPanel('epaper',null);openEpaperModal()"><i
+                                        class="fas fa-upload" style="color:var(--blue);"></i>Upload E-Paper</button>
+                                <!-- Market Rates Quick Action removed -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-card" style="margin-top: var(--space-4);">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-chart-line" style="color:var(--blue);margin-right:6px;"></i>Live Site Metrics</div>
+                            <button class="btn btn-secondary btn-sm" onclick="loadAnalytics()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="stats-grid" style="margin-top: 0;">
+                                <div class="stat-card">
+                                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                                    <div>
+                                        <div class="stat-num" id="statVisits">–</div>
+                                        <div class="stat-label">Total Visitors</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon red"><i class="fab fa-youtube"></i></div>
+                                    <div>
+                                        <div class="stat-num" id="statYTClicks">–</div>
+                                        <div class="stat-label">YouTube Clicks</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon purple"><i class="fas fa-file-pdf"></i></div>
+                                    <div>
+                                        <div class="stat-num" id="statEPClicks">–</div>
+                                        <div class="stat-label">E-Paper Views</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title">Recent Blogs</div><button class="btn btn-secondary btn-sm"
+                                onclick="showPanel('blogs',null)">View All</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Date</th>
+                                            <th>Featured</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentBlogsBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== BLOGS ===== -->
+                <div class="panel" id="panel-blogs">
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-newspaper"
+                                    style="color:var(--red);margin-right:6px;"></i>Blogs Management</div>
+                            <button class="btn btn-primary btn-sm" onclick="openBlogModal()"><i
+                                    class="fas fa-plus"></i>New Blog</button>
+                        </div>
+                        <div class="sc-body">
+                            <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap;">
+                                <input type="text" id="blogSearch" placeholder="Search blogs..."
+                                    style="flex:1;min-width:180px;height:38px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);padding:0 var(--space-3);font-size:13px;outline:none;"
+                                    oninput="filterBlogs()">
+                                <select id="blogCatFilter" onchange="filterBlogs()"
+                                    style="height:38px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);padding:0 var(--space-3);font-size:13px;outline:none;background:var(--white);">
+                                    <option value="">All Categories</option>
+                                    <option>राजनीति</option>
+                                    <option>क्रीडा</option>
+                                    <option>व्यापार</option>
+                                    <option>मनोरंजन</option>
+                                    <option>तंत्रज्ञान</option>
+                                    <option>आरोग्य</option>
+                                    <option>शिक्षण</option>
+                                </select>
+                            </div>
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Title (HI)</th>
+                                            <th>Category</th>
+                                            <th>Author</th>
+                                            <th>Date</th>
+                                            <th>Featured</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="blogsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="blogsEmpty" style="display:none;"><i
+                                    class="fas fa-newspaper"></i>
+                                <p>No blogs found. Create your first blog.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== YOUTUBE ===== -->
+                <div class="panel" id="panel-youtube">
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fab fa-youtube"
+                                    style="color:#FF0000;margin-right:6px;"></i>YouTube Videos</div>
+                            <button class="btn btn-primary btn-sm" onclick="openVideoModal()"><i
+                                    class="fas fa-plus"></i>Add Video</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Thumbnail</th>
+                                            <th>Title (HI)</th>
+                                            <th>Duration</th>
+                                            <th>Views</th>
+                                            <th>Live</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="videosBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="videosEmpty" style="display:none;"><i
+                                    class="fab fa-youtube"></i>
+                                <p>No videos yet. Add your first YouTube video.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== EPAPER ===== -->
+                <div class="panel" id="panel-epaper">
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-file-pdf"
+                                    style="color:var(--red);margin-right:6px;"></i>E-Paper Management</div>
+                            <button class="btn btn-primary btn-sm" onclick="openEpaperModal()"><i
+                                    class="fas fa-upload"></i>Upload E-Paper</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Edition</th>
+                                            <th>PDF</th>
+                                            <th>Uploaded</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="epapersBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="epapersEmpty" style="display:none;"><i
+                                    class="fas fa-file-pdf"></i>
+                                <p>No e-papers uploaded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market Rates Panel removed -->
+
+                <!-- ===== CONTACTS ===== -->
+                <div class="panel" id="panel-contacts">
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-envelope"
+                                    style="color:var(--blue);margin-right:6px;"></i>Contact Submissions</div>
+                            <button class="btn btn-secondary btn-sm" onclick="loadContacts()"><i
+                                    class="fas fa-sync"></i>Refresh</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Subject</th>
+                                            <th>Message</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contactsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="contactsEmpty" style="display:none;"><i
+                                    class="fas fa-envelope-open"></i>
+                                <p>No contact submissions yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /admin-body -->
+        </main>
+    </div><!-- /appShell -->
+
+    <!-- ===== BLOG MODAL ===== -->
+    <div class="modal-overlay" id="blogModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div class="modal-title" id="blogModalTitle">New Blog</div>
+                <button class="modal-close" onclick="closeModal('blogModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <input type="hidden" id="blogId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Upload Language *</label>
+                            <select id="bUploadLang">
+                                <option value="mr">MR मराठी</option>
+                                <option value="hi">HI हिंदी</option>
+                                <option value="en">EN English</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category (Optional)</label>
+                            <select id="bCategory">
+                                <option value="">General News (सर्वसाधारण बातम्या)</option>
+                                <option>राजकारण</option>
+                                <option>क्रीडा</option>
+                                <option>व्यवसाय</option>
+                                <option>मनोरंजन</option>
+                                <option>तंत्रज्ञान</option>
+                                <option>आरोग्य</option>
+                                <option>शिक्षण</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" id="bTitle" placeholder="Enter article title">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Author (Optional)</label>
+                            <input type="text" id="bAuthor" placeholder="Author name">
+                        </div>
+                        <div class="form-group">
+                            <label>Slug (auto-generated)</label>
+                            <input type="text" id="bSlug" placeholder="auto-generated">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Blog Image</label>
+                        <div class="upload-area" id="blogUploadArea"
+                            onclick="document.getElementById('blogImageInput').click()"
+                            ondragover="onBlogDragOver(event)" ondrop="onBlogDrop(event)"
+                            ondragleave="onBlogDragLeave()">
+                            <input type="file" id="blogImageInput" accept="image/*" style="display:none"
+                                onchange="handleBlogImageSelect(event)">
+                            <i class="fas fa-image" style="font-size:24px;color:var(--gray-400);margin-bottom:6px;"></i>
+                            <p><strong>Click to upload</strong> or drag & drop image here</p>
+                            <p style="font-size:11px;color:var(--gray-400);margin-top:2px;">Images up to 5MB</p>
+                        </div>
+                        <div class="upload-progress" id="blogUploadProgress">
+                            <div class="upload-progress-bar" id="blogUploadProgressBar"></div>
+                        </div>
+                        <div class="upload-result" id="blogUploadResult"></div>
+                        <input type="url" id="bImage" placeholder="https://... (auto-filled on upload)" style="margin-top:8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Content *</label>
+                        <textarea id="bContent" rows="6" placeholder="Enter article content..."></textarea>
+                    </div>
+                    <div class="toggle-wrap">
+                        <button type="button" class="toggle" id="bFeatured"
+                            onclick="this.classList.toggle('on')"></button>
+                        <span class="toggle-label">Mark as Featured Article</span>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal('blogModal')">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveBlog()"><i class="fas fa-save"></i>Save
+                            Blog</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== VIDEO MODAL ===== -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div class="modal-title" id="videoModalTitle">Add YouTube Video</div>
+                <button class="modal-close" onclick="closeModal('videoModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <input type="hidden" id="videoId">
+                    <div class="form-group">
+                        <label>YouTube Video URL *</label>
+                        <input type="url" id="vUrl" placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ" oninput="handleYtUrlInput()">
+                        <input type="hidden" id="vYtId">
+                        <div id="thumbPreview" style="margin-top:var(--space-2);display:none;">
+                            <img id="thumbImg" src="" alt="thumbnail" width="160" height="90" style="border-radius:var(--radius-md);object-fit:cover;" loading="lazy">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Video Title / Caption *</label>
+                        <input type="text" id="vTitleHi" placeholder="Enter video title">
+                    </div>
+                    <div class="form-group">
+                        <label>Video Description (Optional)</label>
+                        <textarea id="vDescHi" rows="3" placeholder="Enter video description..."></textarea>
+                    </div>
+                    <div class="toggle-wrap">
+                        <button type="button" class="toggle" id="vIsLive"
+                            onclick="this.classList.toggle('on')"></button>
+                        <span class="toggle-label">Mark as LIVE</span>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal('videoModal')">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveVideo()"><i class="fas fa-save"></i>Save
+                            Video</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EPAPER MODAL ===== -->
+    <div class="modal-overlay" id="epaperModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div class="modal-title">Upload E-Paper</div>
+                <button class="modal-close" onclick="closeModal('epaperModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="epDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Edition *</label>
+                            <select id="epEdition">
+                                <option value="solapur">सोलापूर</option>
+                                <option value="pune">पुणे</option>
+                                <option value="mumbai">मुंबई</option>
+                                <option value="nashik">नाशिक</option>
+                                <option value="aurangabad">औरंगाबाद</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload PDF *</label>
+                        <div class="upload-area" id="uploadArea"
+                            onclick="document.getElementById('pdfFileInput').click()" ondragover="onDragOver(event)"
+                            ondrop="onDrop(event)" ondragleave="onDragLeave()">
+                            <input type="file" id="pdfFileInput" accept=".pdf" style="display:none"
+                                onchange="handleFileSelect(event)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Click to upload</strong> or drag & drop PDF here</p>
+                            <p style="font-size:11px;color:var(--gray-400);margin-top:4px;">PDF files only, max 50MB</p>
+                        </div>
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                        </div>
+                        <div class="upload-result" id="uploadResult"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Or enter PDF URL directly</label>
+                        <input type="url" id="epPdfUrl" placeholder="https://... (auto-filled after upload)">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal('epaperModal')">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveEpaper()"><i class="fas fa-save"></i>Save
+                            E-Paper</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONTACT VIEW MODAL ===== -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div class="modal-title">Contact Message</div>
+                <button class="modal-close" onclick="closeModal('contactModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid" id="contactModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONFIRM ===== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+            <div class="confirm-sub" id="confirmSub">This action cannot be undone.</div>
+            <div class="confirm-btns">
+                <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+                <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        'use strict';
+
+        /* ============================================================
+           CONFIG — replace with your actual Supabase credentials
+           ============================================================ */
+        const REQUIRE_AUTH = false; // Set to true to require username/password, or false to temporarily bypass login
+        const SUPABASE_URL = 'https://lnzbqwwkfcosniqgvzlr.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuemJxd3drZmNvc25pcWd2emxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjM1NzcsImV4cCI6MjA5MzYzOTU3N30.0RxWFtJWD4MHn3oiXTvzGs32L9W_rZ0qiMz4L6y45Wc';
+        const SUPABASE_SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuemJxd3drZmNvc25pcWd2emxyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODA2MzU3NywiZXhwIjoyMDkzNjM5NTc3fQ.PSPBqRiWc6QyfutDQ2HzMDTKYPZpwIUGXLndgPmBfEQ'; // for storage uploads
+        const STORAGE_BUCKET = 'epapers';
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS_HASH = btoa('lok@2025'); // change password here (base64 obfuscation)
+
+        /* ============================================================
+           AUTH
+           ============================================================ */
+        let isLoggedIn = !REQUIRE_AUTH;
+
+        function doLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+            if (u === ADMIN_USER && btoa(p) === ADMIN_PASS_HASH) {
+                isLoggedIn = true;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appShell').classList.add('show');
+                initApp();
+            } else {
+                document.getElementById('loginError').classList.add('show');
+                setTimeout(() => document.getElementById('loginError').classList.remove('show'), 3000);
+            }
+        }
+        function doLogout() {
+            isLoggedIn = false;
+            document.getElementById('appShell').classList.remove('show');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginPass').value = '';
+        }
+
+        // Automatic bypass on load if REQUIRE_AUTH is false
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!REQUIRE_AUTH) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appShell').classList.add('show');
+                initApp();
+            }
+        });
+
+        /* ============================================================
+           SUPABASE HELPERS
+           ============================================================ */
+        async function sbGet(table, params = '') {
+            try {
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+                    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+                });
+                if (!r.ok) throw new Error(await r.text());
+                return await r.json();
+            } catch (e) { console.error(e); return []; }
+        }
+        async function sbInsert(table, body) {
+            try {
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify(body)
+                });
+                if (!r.ok) throw new Error(await r.text());
+                return await r.json();
+            } catch (e) { console.error(e); return null; }
+        }
+        async function sbUpdate(table, id, body) {
+            try {
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify(body)
+                });
+                if (!r.ok) throw new Error(await r.text());
+                return await r.json();
+            } catch (e) { console.error(e); return null; }
+        }
+        async function sbDelete(table, id) {
+            try {
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+                });
+                return r.ok;
+            } catch (e) { console.error(e); return false; }
+        }
+
+        /* ============================================================
+           UI HELPERS
+           ============================================================ */
+        let toastTimer;
+        function toast(msg, type = '') {
+            const el = document.getElementById('toast');
+            el.textContent = msg; el.className = 'toast' + (type ? ' ' + type : '');
+            el.classList.add('show'); clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+        }
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        let confirmCb = null;
+        function openConfirm(title, sub, cb) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmSub').textContent = sub;
+            confirmCb = cb;
+            document.getElementById('confirmOverlay').classList.add('show');
+            document.getElementById('confirmOkBtn').onclick = () => { closeConfirm(); cb && cb(); };
+        }
+        function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); }
+        function showPanel(name, el) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + name).classList.add('active');
+            document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+            if (el) el.classList.add('active');
+            else document.querySelectorAll('.sb-item').forEach(i => { if (i.textContent.toLowerCase().includes(name.toLowerCase().slice(0, 4))) i.classList.add('active'); });
+            const titles = { dashboard: 'Dashboard', blogs: 'Blogs', youtube: 'YouTube Videos', epaper: 'E-Papers', market: 'Market Rates', contacts: 'Contacts' };
+            document.getElementById('topbarTitle').textContent = titles[name] || name;
+            closeMobSidebar();
+            if (name === 'blogs') loadBlogs();
+            if (name === 'youtube') loadVideos();
+            if (name === 'epaper') loadEpapers();
+            if (name === 'market') loadMarket();
+            if (name === 'contacts') loadContacts();
+            if (name === 'dashboard') loadDashboard();
+        }
+        function openMobSidebar() { document.getElementById('adminSidebar').classList.add('mob-open'); document.getElementById('mobOverlay').classList.add('show'); }
+        function closeMobSidebar() { document.getElementById('adminSidebar').classList.remove('mob-open'); document.getElementById('mobOverlay').classList.remove('show'); }
+        function fmtDate(d) { if (!d) return '–'; const dt = new Date(d); return dt.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+        function slugify(t) { return t.toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, ''); }
+
+        /* ============================================================
+           INIT
+           ============================================================ */
+        async function initApp() {
+            document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('hi-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+            await loadDashboard();
+            renderRatesForm();
+        }
+
+        /* ============================================================
+           DASHBOARD
+           ============================================================ */
+        async function loadDashboard() {
+            const bCount = (await sbGet('blogs', 'select=id')).length || 0;
+            const vCount = (await sbGet('youtube_videos', 'select=id')).length || 0;
+            const eCount = (await sbGet('epapers', 'select=id')).length || 0;
+            const cCount = (await sbGet('contacts', 'select=id')).length || 0;
+            const unread = (await sbGet('contacts', 'select=id&is_read=eq.false')).length || 0;
+            document.getElementById('statBlogs').textContent = bCount;
+            document.getElementById('statVideos').textContent = vCount;
+            document.getElementById('statEpapers').textContent = eCount;
+            document.getElementById('statContacts').textContent = cCount;
+            if (unread > 0) { document.getElementById('unreadBadge').textContent = unread; document.getElementById('unreadBadge').style.display = 'inline'; }
+            // recent blogs
+            const rb = await sbGet('blogs', 'select=title_hi,category,published_at,is_featured&order=published_at.desc&limit=5');
+            const tbody = document.getElementById('recentBlogsBody');
+            if (!rb || rb.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray-400);padding:var(--space-5);">No blogs yet</td></tr>'; return; }
+            tbody.innerHTML = rb.map(b => `<tr>
+    <td>${b.title_hi || '–'}</td>
+    <td><span class="badge badge-blue">${b.category || '–'}</span></td>
+    <td>${fmtDate(b.published_at)}</td>
+    <td>${b.is_featured ? '<span class="badge badge-gold">⭐ Featured</span>' : '<span class="badge badge-gray">–</span>'}</td>
+  </tr>`).join('');
+            // Fetch additional site metrics
+            loadAnalytics();
+        }
+
+        async function loadAnalytics() {
+            try {
+                const stats = await sbGet('site_stats', 'select=*');
+                if (!stats) return;
+                const map = {};
+                stats.forEach(s => map[s.id] = s.count);
+                
+                const vEl = document.getElementById('statVisits');
+                const ytEl = document.getElementById('statYTClicks');
+                const epEl = document.getElementById('statEPClicks');
+                
+                if(vEl) vEl.textContent = map['visitors'] !== undefined ? map['visitors'] : '0';
+                if(ytEl) ytEl.textContent = map['youtube_clicks'] !== undefined ? map['youtube_clicks'] : '0';
+                if(epEl) epEl.textContent = map['epaper_clicks'] !== undefined ? map['epaper_clicks'] : '0';
+            } catch(e) {
+                console.error("Error loading stats:", e);
+            }
+        }
+
+        /* ============================================================
+           BLOGS CRUD
+           ============================================================ */
+        let allBlogs = [];
+        async function loadBlogs() {
+            allBlogs = await sbGet('blogs', 'select=*&order=published_at.desc') || [];
+            renderBlogsTable(allBlogs);
+        }
+        function renderBlogsTable(data) {
+            const tbody = document.getElementById('blogsBody');
+            const empty = document.getElementById('blogsEmpty');
+            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            tbody.innerHTML = data.map(b => `<tr>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${b.title_hi || ''}">${b.title_hi || '–'}</td>
+    <td><span class="badge badge-blue">${b.category || '–'}</span></td>
+    <td>${b.author || '–'}</td>
+    <td>${fmtDate(b.published_at)}</td>
+    <td>${b.is_featured ? '<span class="badge badge-gold">⭐</span>' : '<span class="badge badge-gray">No</span>'}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-blue btn-sm" onclick="editBlog('${b.id}')"><i class="fas fa-edit"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteBlog('${b.id}','${(b.title_hi || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+        }
+        function filterBlogs() {
+            const q = document.getElementById('blogSearch').value.toLowerCase();
+            const cat = document.getElementById('blogCatFilter').value;
+            const filtered = allBlogs.filter(b => {
+                const matchQ = !q || (b.title_hi || '').toLowerCase().includes(q) || (b.title_en || '').toLowerCase().includes(q);
+                const matchCat = !cat || b.category === cat;
+                return matchQ && matchCat;
+            });
+            renderBlogsTable(filtered);
+        }
+        async function translateText(text, fromLang, toLang) {
+            if (!text) return '';
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    return data[0].map(x => x[0]).join('');
+                }
+            } catch (e) {
+                console.error("Translation error:", e);
+            }
+            return text; // fallback
+        }
+        function openBlogModal(data = null) {
+            document.getElementById('blogId').value = data ? data.id : '';
+            document.getElementById('blogModalTitle').textContent = data ? 'Edit Blog' : 'New Blog';
+            document.getElementById('bTitle').value = data ? (data.title_mr || data.title_hi || '') : '';
+            document.getElementById('bCategory').value = data ? data.category || '' : '';
+            document.getElementById('bAuthor').value = data ? data.author || '' : '';
+            document.getElementById('bImage').value = data ? data.image_url || '' : '';
+            document.getElementById('bSlug').value = data ? data.slug || '' : '';
+            document.getElementById('bContent').value = data ? (data.content_mr || data.content_hi || '') : '';
+            document.getElementById('bUploadLang').value = data ? (data.title_mr ? 'mr' : 'hi') : 'mr';
+            const ft = document.getElementById('bFeatured');
+            ft.className = 'toggle' + (data && data.is_featured ? ' on' : '');
+            document.getElementById('blogUploadResult').style.display = 'none';
+            document.getElementById('blogUploadProgress').style.display = 'none';
+            document.getElementById('blogUploadProgressBar').style.width = '0%';
+            openModal('blogModal');
+        }
+        function editBlog(id) { const b = allBlogs.find(x => x.id === id); if (b) openBlogModal(b); }
+        async function saveBlog() {
+            const id = document.getElementById('blogId').value;
+            const bTitle = document.getElementById('bTitle').value.trim();
+            const bContent = document.getElementById('bContent').value.trim();
+            const uploadLang = document.getElementById('bUploadLang').value;
+            if (!bTitle || !bContent) { toast('Title and Content are required', 'error'); return; }
+            toast('Saving and translating blog...', 'success');
+            let titleHi = '', titleMr = '', titleEn = '';
+            let contentHi = '', contentMr = '', contentEn = '';
+            if (uploadLang === 'hi') {
+                titleHi = bTitle; contentHi = bContent;
+                try {
+                    titleMr = await translateText(bTitle, 'hi', 'mr');
+                    titleEn = await translateText(bTitle, 'hi', 'en');
+                    contentMr = await translateText(bContent, 'hi', 'mr');
+                    contentEn = await translateText(bContent, 'hi', 'en');
+                } catch (err) { titleMr = bTitle; titleEn = bTitle; contentMr = bContent; contentEn = bContent; }
+            } else if (uploadLang === 'en') {
+                titleEn = bTitle; contentEn = bContent;
+                try {
+                    titleMr = await translateText(bTitle, 'en', 'mr');
+                    titleHi = await translateText(bTitle, 'en', 'hi');
+                    contentMr = await translateText(bContent, 'en', 'mr');
+                    contentHi = await translateText(bContent, 'en', 'hi');
+                } catch (err) { titleMr = bTitle; titleHi = bTitle; contentMr = bContent; contentHi = bContent; }
+            } else {
+                titleMr = bTitle; contentMr = bContent;
+                try {
+                    titleHi = await translateText(bTitle, 'mr', 'hi');
+                    titleEn = await translateText(bTitle, 'mr', 'en');
+                    contentHi = await translateText(bContent, 'mr', 'hi');
+                    contentEn = await translateText(bContent, 'mr', 'en');
+                } catch (err) { titleHi = bTitle; titleEn = bTitle; contentHi = bContent; contentEn = bContent; }
+            }
+            const body = {
+                title_hi: titleHi, title_mr: titleMr, title_en: titleEn,
+                category: document.getElementById('bCategory').value || 'general',
+                author: document.getElementById('bAuthor').value.trim(),
+                image_url: document.getElementById('bImage').value.trim(),
+                slug: document.getElementById('bSlug').value.trim() || slugify(titleEn || titleHi),
+                content_hi: contentHi, content_mr: contentMr, content_en: contentEn,
+                is_featured: document.getElementById('bFeatured').classList.contains('on'),
+                published_at: new Date().toISOString()
+            };
+            const ok = id ? await sbUpdate('blogs', id, body) : await sbInsert('blogs', body);
+            if (ok) { toast(id ? 'Blog updated!' : 'Blog created!', 'success'); closeModal('blogModal'); loadBlogs(); }
+            else toast('Error saving blog', 'error');
+        }
+        function deleteBlog(id, title) {
+            openConfirm('Delete Blog?', `"${title}" will be permanently deleted.`, async () => {
+                const ok = await sbDelete('blogs', id);
+                if (ok) { toast('Blog deleted', 'success'); loadBlogs(); } else toast('Error', 'error');
+            });
+        }
+
+        /* ============================================================
+           YOUTUBE CRUD
+           ============================================================ */
+        let allVideos = [];
+        async function loadVideos() {
+            allVideos = await sbGet('youtube_videos', 'select=*&order=published_at.desc') || [];
+            renderVideosTable(allVideos);
+        }
+        function renderVideosTable(data) {
+            const tbody = document.getElementById('videosBody');
+            const empty = document.getElementById('videosEmpty');
+            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            tbody.innerHTML = data.map(v => `<tr>
+    <td><img class="yt-thumb" src="https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg" alt="thumb"></td>
+    <td>${v.title_hi || '–'}</td>
+    <td>${v.duration || '–'}</td>
+    <td>${v.views || '–'}</td>
+    <td>${v.is_live ? '<span class="badge badge-red">🔴 LIVE</span>' : '<span class="badge badge-gray">–</span>'}</td>
+    <td>${fmtDate(v.published_at)}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-blue btn-sm" onclick="editVideo('${v.id}')"><i class="fas fa-edit"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}','${(v.title_hi || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+        }
+        function extractYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        async function handleYtUrlInput() {
+            const url = document.getElementById('vUrl').value.trim();
+            const ytId = extractYoutubeId(url);
+            if (ytId) {
+                document.getElementById('vYtId').value = ytId;
+                previewThumb();
+                try {
+                    const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${ytId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.title) document.getElementById('vTitleHi').value = data.title;
+                    }
+                } catch (e) { }
+            }
+        }
+        function openVideoModal(data = null) {
+            document.getElementById('videoId').value = data ? data.id : '';
+            document.getElementById('videoModalTitle').textContent = data ? 'Edit Video' : 'Add Video';
+            document.getElementById('vYtId').value = data ? data.youtube_id || '' : '';
+            document.getElementById('vUrl').value = data ? `https://www.youtube.com/watch?v=${data.youtube_id}` : '';
+            document.getElementById('vTitleHi').value = data ? data.title_hi || '' : '';
+            document.getElementById('vDescHi').value = data ? data.description_hi || '' : '';
+            const lt = document.getElementById('vIsLive');
+            lt.className = 'toggle' + (data && data.is_live ? ' on' : '');
+            if (data && data.youtube_id) previewThumb(); else document.getElementById('thumbPreview').style.display = 'none';
+            openModal('videoModal');
+        }
+        function previewThumb() {
+            const id = document.getElementById('vYtId').value.trim();
+            const img = document.getElementById('thumbImg');
+            if (id.length > 5) { img.src = `https://img.youtube.com/vi/${id}/mqdefault.jpg`; document.getElementById('thumbPreview').style.display = 'block'; }
+            else document.getElementById('thumbPreview').style.display = 'none';
+        }
+        function editVideo(id) { const v = allVideos.find(x => x.id === id); if (v) openVideoModal(v); }
+        async function saveVideo() {
+            const id = document.getElementById('videoId').value;
+            const ytId = document.getElementById('vYtId').value.trim();
+            const title = document.getElementById('vTitleHi').value.trim();
+            if (!ytId || !title) { toast('YouTube URL and title are required', 'error'); return; }
+            const body = {
+                youtube_id: ytId, title_hi: title, title_mr: title, title_en: title,
+                duration: '', views: '',
+                description_hi: document.getElementById('vDescHi').value.trim(),
+                is_live: document.getElementById('vIsLive').classList.contains('on'),
+                published_at: new Date().toISOString()
+            };
+            const ok = id ? await sbUpdate('youtube_videos', id, body) : await sbInsert('youtube_videos', body);
+            if (ok) { toast('Saved!', 'success'); closeModal('videoModal'); loadVideos(); }
+            else toast('Error saving video', 'error');
+        }
+        function deleteVideo(id, title) {
+            openConfirm('Delete Video?', `"${title}" will be removed.`, async () => {
+                const ok = await sbDelete('youtube_videos', id);
+                if (ok) { toast('Video deleted', 'success'); loadVideos(); } else toast('Error', 'error');
+            });
+        }
+
+        /* ============================================================
+           EPAPER
+           ============================================================ */
+        let allEpapers = [];
+        async function loadEpapers() {
+            allEpapers = await sbGet('epapers', 'select=*&order=date.desc') || [];
+            renderEpapersTable(allEpapers);
+        }
+        function renderEpapersTable(data) {
+            const tbody = document.getElementById('epapersBody');
+            const empty = document.getElementById('epapersEmpty');
+            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            const eds = { solapur: 'सोलापूर', pune: 'पुणे', mumbai: 'मुंबई', nashik: 'नाशिक', aurangabad: 'औरंगाबाद' };
+            tbody.innerHTML = data.map(ep => `<tr>
+    <td>${ep.date || '–'}</td>
+    <td><span class="badge badge-blue">${eds[ep.edition] || ep.edition}</span></td>
+    <td><a href="${ep.pdf_url}" target="_blank" rel="noopener"><i class="fas fa-file-pdf" style="color:var(--red);"></i> View PDF</a></td>
+    <td>${fmtDate(ep.uploaded_at)}</td>
+    <td><div class="td-actions"><button class="btn btn-danger btn-sm" onclick="deleteEpaper('${ep.id}','${ep.date}')"><i class="fas fa-trash"></i></button></div></td>
+  </tr>`).join('');
+        }
+        function openEpaperModal() {
+            document.getElementById('epDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('epPdfUrl').value = '';
+            document.getElementById('uploadResult').style.display = 'none';
+            document.getElementById('uploadProgress').style.display = 'none';
+            openModal('epaperModal');
+        }
+        function onDragOver(e) { e.preventDefault(); document.getElementById('uploadArea').classList.add('drag'); }
+        function onDragLeave() { document.getElementById('uploadArea').classList.remove('drag'); }
+        function onDrop(e) { e.preventDefault(); document.getElementById('uploadArea').classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) uploadPDF(f); }
+        function handleFileSelect(e) { const f = e.target.files[0]; if (f) uploadPDF(f); }
+        async function uploadPDF(file) {
+            if (file.size > 50 * 1024 * 1024) { toast('PDF too large! (max 50MB)', 'warning'); return; }
+            const fname = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+            const prog = document.getElementById('uploadProgress');
+            const bar = document.getElementById('uploadProgressBar');
+            prog.style.display = 'block'; bar.style.width = '20%';
+            try {
+                const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fname}`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_SERVICE, 'Authorization': `Bearer ${SUPABASE_SERVICE}`, 'Content-Type': 'application/pdf' },
+                    body: file
+                });
+                if (!r.ok) throw new Error('Upload failed');
+                bar.style.width = '100%';
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${fname}`;
+                document.getElementById('epPdfUrl').value = publicUrl;
+                document.getElementById('uploadResult').style.display = 'block';
+                document.getElementById('uploadResult').innerHTML = `Uploaded! <a href="${publicUrl}" target="_blank">View</a>`;
+            } catch (e) { toast('Upload failed', 'error'); }
+        }
+        async function saveEpaper() {
+            const date = document.getElementById('epDate').value;
+            const edition = document.getElementById('epEdition').value;
+            const pdfUrl = document.getElementById('epPdfUrl').value.trim();
+            if (!date || !pdfUrl) { toast('Date and PDF are required', 'warning'); return; }
+            const ok = await sbInsert('epapers', { date, edition, pdf_url: pdfUrl, uploaded_at: new Date().toISOString() });
+            if (ok) { toast('Saved!', 'success'); closeModal('epaperModal'); loadEpapers(); }
+            else toast('Error saving', 'error');
+        }
+        function deleteEpaper(id, date) {
+            openConfirm('Delete?', `Delete e-paper for ${date}?`, async () => {
+                const ok = await sbDelete('epapers', id);
+                if (ok) { toast('Deleted', 'success'); loadEpapers(); }
+            });
+        }
+
+        /* ============================================================
+           CONTACTS
+           ============================================================ */
+        let allContacts = [];
+        async function loadContacts() {
+            allContacts = await sbGet('contacts', 'select=*&order=submitted_at.desc') || [];
+            renderContactsTable(allContacts);
+            const unread = allContacts.filter(c => !c.is_read).length;
+            const b = document.getElementById('unreadBadge');
+            if (unread > 0) { b.textContent = unread; b.style.display = 'inline'; } else b.style.display = 'none';
+        }
+        function renderContactsTable(data) {
+            const tbody = document.getElementById('contactsBody');
+            const empty = document.getElementById('contactsEmpty');
+            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            tbody.innerHTML = data.map(c => `<tr class="contact-row" style="${!c.is_read ? 'font-weight:700;' : ''}">
+    <td>${!c.is_read ? '<span class="unread-dot"></span>' : ''}</td>
+    <td>${c.name || '–'}</td>
+    <td>${c.email || '–'}</td>
+    <td>${c.phone || '–'}</td>
+    <td>${c.subject || '–'}</td>
+    <td>${c.message || '–'}</td>
+    <td>${fmtDate(c.submitted_at)}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-blue btn-sm" onclick="viewContact('${c.id}')"><i class="fas fa-eye"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+        }
+        async function viewContact(id) {
+            const c = allContacts.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('contactModalBody').innerHTML = `
+    <div class="form-row"><div class="form-group"><label>Name</label><input readonly value="${c.name || ''}"></div><div class="form-group"><label>Phone</label><input readonly value="${c.phone || ''}"></div></div>
+    <div class="form-group"><label>Email</label><input readonly value="${c.email || ''}"></div>
+    <div class="form-group"><label>Subject</label><input readonly value="${c.subject || ''}"></div>
+    <div class="form-group"><label>Message</label><textarea readonly rows="5">${c.message || ''}</textarea></div>`;
+            openModal('contactModal');
+            if (!c.is_read) { await sbUpdate('contacts', c.id, { is_read: true }); loadContacts(); }
+        }
+        function deleteContact(id) {
+            openConfirm('Delete?', 'Delete this message?', async () => {
+                if (await sbDelete('contacts', id)) loadContacts();
+            });
+        }
+
+        /* MARKET RATES HELPERS (FORM RENDERING) */
+        const RATE_KEYS = [
+            { key: 'gold', label: 'Gold (सोने)', icon: '🥇', unit: '₹/10g' },
+            { key: 'silver', label: 'Silver (चांदी)', icon: '🥈', unit: '₹/kg' },
+            { key: 'nifty', label: 'Nifty', icon: '📈', unit: 'pts' },
+            { key: 'sensex', label: 'Sensex', icon: '📊', unit: 'pts' },
+            { key: 'dollar', label: 'Dollar (डॉलर)', icon: '💵', unit: '₹/$' }
+        ];
+        let rateData = {};
+        async function loadMarket() {
+            const data = await sbGet('market_rates', 'select=*') || [];
+            data.forEach(r => rateData[r.key] = r);
+            renderRatesForm();
+        }
+        function renderRatesForm() {
+            const grid = document.getElementById('ratesGrid');
+            if(!grid) return;
+            grid.innerHTML = RATE_KEYS.map(r => `
+                <div class="rate-card">
+                    <div class="rate-card-head"><span class="rate-icon">${r.icon}</span><span class="rate-name">${r.label}</span></div>
+                    <div class="rate-inputs">
+                        <div><label>Value</label><input type="number" id="rate_${r.key}_val" value="${rateData[r.key]?.value || ''}" step="0.01"></div>
+                        <div><label>Change %</label><input type="number" id="rate_${r.key}_chg" value="${rateData[r.key]?.change_pct || ''}" step="0.01"></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        /* KEYBOARD */
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['blogModal', 'videoModal', 'epaperModal', 'contactModal'].forEach(closeModal); closeConfirm(); } });
+    </script>
+</body>
+
+</html>
