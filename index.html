@@ -1289,6 +1289,10 @@
                         id="unreadBadge"
                         style="background:var(--red);color:white;font-size:10px;font-weight:800;padding:1px 6px;border-radius:var(--radius-full);margin-left:auto;display:none;">0</span>
                 </div>
+                <div class="sb-item" onclick="showPanel('complaints',this)"><i class="fas fa-exclamation-circle"></i>Complaints <span
+                        id="unreadComplaintsBadge"
+                        style="background:var(--red);color:white;font-size:10px;font-weight:800;padding:1px 6px;border-radius:var(--radius-full);margin-left:auto;display:none;">0</span>
+                </div>
             </nav>
             <div class="sb-foot">
                 <button class="sb-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
@@ -1337,6 +1341,13 @@
                             <div>
                                 <div class="stat-num" id="statContacts">–</div>
                                 <div class="stat-label">Contacts</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" onclick="showPanel('complaints')" style="cursor:pointer;">
+                            <div class="stat-icon red"><i class="fas fa-exclamation-circle"></i></div>
+                            <div>
+                                <div class="stat-num" id="statComplaints">–</div>
+                                <div class="stat-label">Complaints</div>
                             </div>
                         </div>
                     </div>
@@ -1563,6 +1574,41 @@
                     </div>
                 </div>
 
+                <!-- ===== COMPLAINTS ===== -->
+                <div class="panel" id="panel-complaints">
+                    <div class="section-card">
+                        <div class="sc-head">
+                            <div class="sc-title"><i class="fas fa-exclamation-circle"
+                                    style="color:var(--red);margin-right:6px;"></i>Complaints Submissions</div>
+                            <button class="btn btn-secondary btn-sm" onclick="loadComplaints()"><i
+                                    class="fas fa-sync"></i>Refresh</button>
+                        </div>
+                        <div class="sc-body">
+                            <div class="tbl-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Contact Info</th>
+                                            <th>Complaint Message</th>
+                                            <th>Attached Image</th>
+                                            <th>Submission Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="complaintsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="complaintsEmpty" style="display:none;"><i
+                                    class="fas fa-exclamation-triangle"></i>
+                                <p>No complaints submitted yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div><!-- /admin-body -->
         </main>
     </div><!-- /appShell -->
@@ -1760,6 +1806,19 @@
         </div>
     </div>
 
+    <!-- ===== COMPLAINT VIEW MODAL ===== -->
+    <div class="modal-overlay" id="complaintModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-head">
+                <div class="modal-title">Complaint Details</div>
+                <button class="modal-close" onclick="closeModal('complaintModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid" id="complaintModalBody"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== CONFIRM ===== -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
@@ -1895,7 +1954,7 @@
             document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
             if (el) el.classList.add('active');
             else document.querySelectorAll('.sb-item').forEach(i => { if (i.textContent.toLowerCase().includes(name.toLowerCase().slice(0, 4))) i.classList.add('active'); });
-            const titles = { dashboard: 'Dashboard', blogs: 'Blogs', youtube: 'YouTube Videos', epaper: 'E-Papers', market: 'Market Rates', contacts: 'Contacts' };
+            const titles = { dashboard: 'Dashboard', blogs: 'Blogs', youtube: 'YouTube Videos', epaper: 'E-Papers', market: 'Market Rates', contacts: 'Contacts', complaints: 'Complaints' };
             document.getElementById('topbarTitle').textContent = titles[name] || name;
             closeMobSidebar();
             if (name === 'blogs') loadBlogs();
@@ -1903,6 +1962,7 @@
             if (name === 'epaper') loadEpapers();
             if (name === 'market') loadMarket();
             if (name === 'contacts') loadContacts();
+            if (name === 'complaints') loadComplaints();
             if (name === 'dashboard') loadDashboard();
         }
         function openMobSidebar() { document.getElementById('adminSidebar').classList.add('mob-open'); document.getElementById('mobOverlay').classList.add('show'); }
@@ -1917,6 +1977,7 @@
             document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('hi-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
             await loadDashboard();
             renderRatesForm();
+            loadComplaintsBadge();
         }
 
         /* ============================================================
@@ -1927,12 +1988,19 @@
             const vCount = (await sbGet('youtube_videos', 'select=id')).length || 0;
             const eCount = (await sbGet('epapers', 'select=id')).length || 0;
             const cCount = (await sbGet('contacts', 'select=id')).length || 0;
+            const compCount = (await sbGet('complaints', 'select=id')).length || 0;
             const unread = (await sbGet('contacts', 'select=id&is_read=eq.false')).length || 0;
+            
             document.getElementById('statBlogs').textContent = bCount;
             document.getElementById('statVideos').textContent = vCount;
             document.getElementById('statEpapers').textContent = eCount;
             document.getElementById('statContacts').textContent = cCount;
-            if (unread > 0) { document.getElementById('unreadBadge').textContent = unread; document.getElementById('unreadBadge').style.display = 'inline'; }
+            document.getElementById('statComplaints').textContent = compCount;
+            
+            if (unread > 0) { document.getElementById('unreadBadge').textContent = unread; document.getElementById('unreadBadge').style.display = 'inline'; } else { document.getElementById('unreadBadge').style.display = 'none'; }
+            
+            loadComplaintsBadge();
+            
             // recent blogs
             const rb = await sbGet('blogs', 'select=title_hi,category,published_at,is_featured&order=published_at.desc&limit=5');
             const tbody = document.getElementById('recentBlogsBody');
@@ -2292,6 +2360,133 @@
             });
         }
 
+        /* ============================================================
+           COMPLAINTS
+           ============================================================ */
+        let allComplaints = [];
+        
+        async function loadComplaintsBadge() {
+            try {
+                const unresolvedCount = (await sbGet('complaints', 'select=id&is_resolved=eq.false')).length || 0;
+                const b = document.getElementById('unreadComplaintsBadge');
+                if (b) {
+                    if (unresolvedCount > 0) {
+                        b.textContent = unresolvedCount;
+                        b.style.display = 'inline';
+                    } else {
+                        b.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        async function loadComplaints() {
+            allComplaints = await sbGet('complaints', 'select=*&order=created_at.desc') || [];
+            renderComplaintsTable(allComplaints);
+            loadComplaintsBadge();
+        }
+        
+        function renderComplaintsTable(data) {
+            const tbody = document.getElementById('complaintsBody');
+            const empty = document.getElementById('complaintsEmpty');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            tbody.innerHTML = data.map(c => `
+                <tr class="complaint-row" style="${!c.is_resolved ? 'font-weight:700;' : ''}">
+                    <td>${!c.is_resolved ? '<span class="unread-dot" style="background:var(--red);"></span>' : ''}</td>
+                    <td>${c.name || '–'}</td>
+                    <td>${c.contact || '–'}</td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.message || '–'}</td>
+                    <td>
+                        ${c.image_url ? `
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <a href="${c.image_url}" target="_blank" style="display:inline-block; width:36px; height:36px; border-radius:4px; border:1.5px solid var(--gray-300); overflow:hidden;">
+                                    <img src="${c.image_url}" style="width:100%; height:100%; object-fit:cover;">
+                                </a>
+                                <a href="${c.image_url}" download="complaint-image-${c.id}.jpg" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size:11px;" title="Download Image">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        ` : '<span style="color:var(--gray-400)">No attachment</span>'}
+                    </td>
+                    <td>${fmtDate(c.created_at || c.submitted_at)}</td>
+                    <td>
+                        <span class="badge ${c.is_resolved ? 'badge-green' : 'badge-red'}" style="background:${c.is_resolved ? 'var(--green-bg)' : 'var(--red-bg)'}; color:${c.is_resolved ? 'var(--green)' : 'var(--red)'}; cursor:pointer;" onclick="toggleResolveComplaint('${c.id}', event)">
+                            ${c.is_resolved ? '✅ Resolved' : '⭕ Unresolved'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="td-actions">
+                            <button class="btn btn-blue btn-sm" onclick="viewComplaint('${c.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteComplaint('${c.id}')" title="Delete Complaint"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        async function viewComplaint(id) {
+            const c = allComplaints.find(x => x.id === id);
+            if (!c) return;
+            
+            const hasImage = !!c.image_url;
+            
+            document.getElementById('complaintModalBody').innerHTML = `
+                <div class="form-row">
+                    <div class="form-group"><label>Complainant Name</label><input readonly value="${c.name || ''}"></div>
+                    <div class="form-group"><label>Contact Details</label><input readonly value="${c.contact || ''}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Submission Date</label><input readonly value="${fmtDate(c.created_at || c.submitted_at)}"></div>
+                    <div class="form-group"><label>Resolution Status</label><input readonly value="${c.is_resolved ? 'Resolved' : 'Unresolved'}"></div>
+                </div>
+                <div class="form-group"><label>Complaint Message</label><textarea readonly rows="5" style="resize:none;">${c.message || ''}</textarea></div>
+                ${hasImage ? `
+                    <div class="form-group">
+                        <label>Attached Image File</label>
+                        <div style="margin-top:8px; border:1px solid var(--gray-200); border-radius:6px; padding:10px; text-align:center; background:var(--gray-50);">
+                            <img src="${c.image_url}" style="max-width:100%; max-height:280px; border-radius:4px; object-fit:contain; box-shadow:var(--shadow-sm); margin-bottom:8px;">
+                            <div style="display:flex; justify-content:center; gap:10px;">
+                                <a href="${c.image_url}" target="_blank" class="btn btn-blue btn-sm"><i class="fas fa-external-link-alt"></i> Open Fullscreen</a>
+                                <a href="${c.image_url}" download="complaint-image-${c.id}.jpg" class="btn btn-green btn-sm"><i class="fas fa-download"></i> Download Photo</a>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            openModal('complaintModal');
+        }
+        
+        async function toggleResolveComplaint(id, event) {
+            if (event) event.stopPropagation();
+            const c = allComplaints.find(x => x.id === id);
+            if (!c) return;
+            const nextStatus = !c.is_resolved;
+            
+            const ok = await sbUpdate('complaints', c.id, { is_resolved: nextStatus });
+            if (ok) {
+                toast(nextStatus ? 'Complaint marked resolved!' : 'Complaint marked unresolved!', 'success');
+                loadComplaints();
+            } else {
+                toast('Error updating status', 'error');
+            }
+        }
+        
+        function deleteComplaint(id) {
+            openConfirm('Delete Complaint?', 'Are you sure you want to permanently delete this complaint submission?', async () => {
+                if (await sbDelete('complaints', id)) {
+                    toast('Complaint deleted successfully', 'success');
+                    loadComplaints();
+                } else {
+                    toast('Error deleting complaint', 'error');
+                }
+            });
+        }
+
         /* MARKET RATES HELPERS (FORM RENDERING) */
         const RATE_KEYS = [
             { key: 'gold', label: 'Gold (सोने)', icon: '🥇', unit: '₹/10g' },
@@ -2320,7 +2515,7 @@
         }
 
         /* KEYBOARD */
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['blogModal', 'videoModal', 'epaperModal', 'contactModal'].forEach(closeModal); closeConfirm(); } });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['blogModal', 'videoModal', 'epaperModal', 'contactModal', 'complaintModal'].forEach(closeModal); closeConfirm(); } });
     </script>
 </body>
 
