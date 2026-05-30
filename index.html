@@ -2101,53 +2101,71 @@
             openModal('blogModal');
         }
         function editBlog(id) { const b = allBlogs.find(x => x.id === id); if (b) openBlogModal(b); }
+        let isSavingBlog = false;
         async function saveBlog() {
+            if (isSavingBlog) return;
             const id = document.getElementById('blogId').value;
             const bTitle = document.getElementById('bTitle').value.trim();
             const bContent = document.getElementById('bContent').value.trim();
             const uploadLang = document.getElementById('bUploadLang').value;
             if (!bTitle || !bContent) { toast('Title and Content are required', 'error'); return; }
+            
+            isSavingBlog = true;
+            const btn = document.querySelector('#blogModal .btn-primary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
             toast('Saving and translating blog...', 'success');
             let titleHi = '', titleMr = '', titleEn = '';
             let contentHi = '', contentMr = '', contentEn = '';
-            if (uploadLang === 'hi') {
-                titleHi = bTitle; contentHi = bContent;
-                try {
-                    titleMr = await translateText(bTitle, 'hi', 'mr');
-                    titleEn = await translateText(bTitle, 'hi', 'en');
-                    contentMr = await translateText(bContent, 'hi', 'mr');
-                    contentEn = await translateText(bContent, 'hi', 'en');
-                } catch (err) { titleMr = bTitle; titleEn = bTitle; contentMr = bContent; contentEn = bContent; }
-            } else if (uploadLang === 'en') {
-                titleEn = bTitle; contentEn = bContent;
-                try {
-                    titleMr = await translateText(bTitle, 'en', 'mr');
-                    titleHi = await translateText(bTitle, 'en', 'hi');
-                    contentMr = await translateText(bContent, 'en', 'mr');
-                    contentHi = await translateText(bContent, 'en', 'hi');
-                } catch (err) { titleMr = bTitle; titleHi = bTitle; contentMr = bContent; contentHi = bContent; }
-            } else {
-                titleMr = bTitle; contentMr = bContent;
-                try {
-                    titleHi = await translateText(bTitle, 'mr', 'hi');
-                    titleEn = await translateText(bTitle, 'mr', 'en');
-                    contentHi = await translateText(bContent, 'mr', 'hi');
-                    contentEn = await translateText(bContent, 'mr', 'en');
-                } catch (err) { titleHi = bTitle; titleEn = bTitle; contentHi = bContent; contentEn = bContent; }
+            try {
+                if (uploadLang === 'hi') {
+                    titleHi = bTitle; contentHi = bContent;
+                    try {
+                        titleMr = await translateText(bTitle, 'hi', 'mr');
+                        titleEn = await translateText(bTitle, 'hi', 'en');
+                        contentMr = await translateText(bContent, 'hi', 'mr');
+                        contentEn = await translateText(bContent, 'hi', 'en');
+                    } catch (err) { titleMr = bTitle; titleEn = bTitle; contentMr = bContent; contentEn = bContent; }
+                } else if (uploadLang === 'en') {
+                    titleEn = bTitle; contentEn = bContent;
+                    try {
+                        titleMr = await translateText(bTitle, 'en', 'mr');
+                        titleHi = await translateText(bTitle, 'en', 'hi');
+                        contentMr = await translateText(bContent, 'en', 'mr');
+                        contentHi = await translateText(bContent, 'en', 'hi');
+                    } catch (err) { titleMr = bTitle; titleHi = bTitle; contentMr = bContent; contentEn = bContent; }
+                } else {
+                    titleMr = bTitle; contentMr = bContent;
+                    try {
+                        titleHi = await translateText(bTitle, 'mr', 'hi');
+                        titleEn = await translateText(bTitle, 'mr', 'en');
+                        contentHi = await translateText(bContent, 'mr', 'hi');
+                        contentEn = await translateText(bContent, 'mr', 'en');
+                    } catch (err) { titleHi = bTitle; titleEn = bTitle; contentHi = bContent; contentEn = bContent; }
+                }
+                const body = {
+                    title_hi: titleHi, title_mr: titleMr, title_en: titleEn,
+                    category: document.getElementById('bCategory').value || 'general',
+                    author: document.getElementById('bAuthor').value.trim(),
+                    image_url: document.getElementById('bImage').value.trim(),
+                    slug: document.getElementById('bSlug').value.trim() || slugify(titleEn || titleHi),
+                    content_hi: contentHi, content_mr: contentMr, content_en: contentEn,
+                    is_featured: document.getElementById('bFeatured').classList.contains('on'),
+                    published_at: new Date().toISOString()
+                };
+                const ok = id ? await sbUpdate('blogs', id, body) : await sbInsert('blogs', body);
+                if (ok) { toast(id ? 'Blog updated!' : 'Blog created!', 'success'); closeModal('blogModal'); loadBlogs(); }
+                else toast('Error saving blog', 'error');
+            } catch (e) {
+                console.error(e);
+                toast('Error saving blog', 'error');
+            } finally {
+                isSavingBlog = false;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
-            const body = {
-                title_hi: titleHi, title_mr: titleMr, title_en: titleEn,
-                category: document.getElementById('bCategory').value || 'general',
-                author: document.getElementById('bAuthor').value.trim(),
-                image_url: document.getElementById('bImage').value.trim(),
-                slug: document.getElementById('bSlug').value.trim() || slugify(titleEn || titleHi),
-                content_hi: contentHi, content_mr: contentMr, content_en: contentEn,
-                is_featured: document.getElementById('bFeatured').classList.contains('on'),
-                published_at: new Date().toISOString()
-            };
-            const ok = id ? await sbUpdate('blogs', id, body) : await sbInsert('blogs', body);
-            if (ok) { toast(id ? 'Blog updated!' : 'Blog created!', 'success'); closeModal('blogModal'); loadBlogs(); }
-            else toast('Error saving blog', 'error');
         }
         function deleteBlog(id, title) {
             openConfirm('Delete Blog?', `"${title}" will be permanently deleted.`, async () => {
@@ -2183,9 +2201,10 @@
   </tr>`).join('');
         }
         function extractYoutubeId(url) {
+            if (!url) return null;
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+            return (match && match[2] && match[2].length === 11) ? match[2] : null;
         }
         async function handleYtUrlInput() {
             const url = document.getElementById('vUrl').value.trim();
@@ -2221,11 +2240,20 @@
             else document.getElementById('thumbPreview').style.display = 'none';
         }
         function editVideo(id) { const v = allVideos.find(x => x.id === id); if (v) openVideoModal(v); }
+        let isSavingVideo = false;
         async function saveVideo() {
+            if (isSavingVideo) return;
             const id = document.getElementById('videoId').value;
             const ytId = document.getElementById('vYtId').value.trim();
             const title = document.getElementById('vTitleHi').value.trim();
             if (!ytId || !title) { toast('YouTube URL and title are required', 'error'); return; }
+            
+            isSavingVideo = true;
+            const btn = document.querySelector('#videoModal .btn-primary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
             const body = {
                 youtube_id: ytId, title_hi: title, title_mr: title, title_en: title,
                 duration: '', views: '',
@@ -2233,9 +2261,19 @@
                 is_live: document.getElementById('vIsLive').classList.contains('on'),
                 published_at: new Date().toISOString()
             };
-            const ok = id ? await sbUpdate('youtube_videos', id, body) : await sbInsert('youtube_videos', body);
-            if (ok) { toast('Saved!', 'success'); closeModal('videoModal'); loadVideos(); }
-            else toast('Error saving video', 'error');
+            
+            try {
+                const ok = id ? await sbUpdate('youtube_videos', id, body) : await sbInsert('youtube_videos', body);
+                if (ok) { toast('Saved!', 'success'); closeModal('videoModal'); loadVideos(); }
+                else toast('Error saving video', 'error');
+            } catch (e) {
+                console.error(e);
+                toast('Error saving video', 'error');
+            } finally {
+                isSavingVideo = false;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
         function deleteVideo(id, title) {
             openConfirm('Delete Video?', `"${title}" will be removed.`, async () => {
@@ -2278,33 +2316,127 @@
         function onDrop(e) { e.preventDefault(); document.getElementById('uploadArea').classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) uploadPDF(f); }
         function handleFileSelect(e) { const f = e.target.files[0]; if (f) uploadPDF(f); }
         async function uploadPDF(file) {
-            if (file.size > 50 * 1024 * 1024) { toast('PDF too large! (max 50MB)', 'warning'); return; }
+            if (!navigator.onLine) {
+                toast('Network offline! Please check your internet connection and try again.', 'error');
+                return;
+            }
+            if (file.size > 50 * 1024 * 1024) {
+                toast('PDF too large! Maximum allowed PDF size is 50MB.', 'warning');
+                return;
+            }
             const fname = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
             const prog = document.getElementById('uploadProgress');
             const bar = document.getElementById('uploadProgressBar');
+            const result = document.getElementById('uploadResult');
             prog.style.display = 'block'; bar.style.width = '20%';
             try {
                 const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fname}`, {
                     method: 'POST',
-                    headers: { 'apikey': SUPABASE_SERVICE, 'Authorization': `Bearer ${SUPABASE_SERVICE}`, 'Content-Type': 'application/pdf' },
+                    headers: { 'apikey': SUPABASE_SERVICE || SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_SERVICE || SUPABASE_ANON}`, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
                     body: file
                 });
-                if (!r.ok) throw new Error('Upload failed');
+                bar.style.width = '80%';
+                if (!r.ok) throw new Error('Storage bucket access denied or invalid credentials.');
                 bar.style.width = '100%';
                 const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${fname}`;
                 document.getElementById('epPdfUrl').value = publicUrl;
-                document.getElementById('uploadResult').style.display = 'block';
-                document.getElementById('uploadResult').innerHTML = `Uploaded! <a href="${publicUrl}" target="_blank">View</a>`;
-            } catch (e) { toast('Upload failed', 'error'); }
+                result.style.display = 'block';
+                result.innerHTML = `<i class="fas fa-check-circle"></i> Uploaded! <a href="${publicUrl}" target="_blank" style="color:var(--blue);font-weight:700;">View PDF</a>`;
+                toast('PDF uploaded successfully!', 'success');
+            } catch (e) {
+                bar.style.width = '0%'; prog.style.display = 'none';
+                toast('Upload failed: ' + e.message, 'error');
+            }
         }
+
+        /* BLOG IMAGE UPLOAD DRAG-AND-DROP HANDLERS */
+        function onBlogDragOver(e) { e.preventDefault(); document.getElementById('blogUploadArea').classList.add('drag'); }
+        function onBlogDragLeave() { document.getElementById('blogUploadArea').classList.remove('drag'); }
+        function onBlogDrop(e) {
+            e.preventDefault();
+            document.getElementById('blogUploadArea').classList.remove('drag');
+            const f = e.dataTransfer.files[0];
+            if (!f) return;
+            if (!f.type.startsWith('image/')) {
+                toast('Invalid format! Please upload an image file (PNG, JPG, JPEG, WEBP) for blogs.', 'warning');
+                return;
+            }
+            uploadBlogImage(f);
+        }
+        function handleBlogImageSelect(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            if (!f.type.startsWith('image/')) {
+                toast('Invalid format! Please upload an image file (PNG, JPG, JPEG, WEBP) for blogs.', 'warning');
+                return;
+            }
+            uploadBlogImage(f);
+        }
+        async function uploadBlogImage(file) {
+            if (!navigator.onLine) {
+                toast('Network offline! Please check your internet connection and try again.', 'error');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast('Image too large! Maximum allowed image size is 5MB.', 'warning');
+                return;
+            }
+            const fname = `blogs/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+            const prog = document.getElementById('blogUploadProgress');
+            const bar = document.getElementById('blogUploadProgressBar');
+            const result = document.getElementById('blogUploadResult');
+            prog.style.display = 'block'; bar.style.width = '20%';
+            try {
+                const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fname}`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_SERVICE, 'Authorization': `Bearer ${SUPABASE_SERVICE}`, 'Content-Type': file.type, 'x-upsert': 'true' },
+                    body: file
+                });
+                bar.style.width = '80%';
+                if (!r.ok) throw new Error('Storage bucket access denied or invalid credentials.');
+                bar.style.width = '100%';
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${fname}`;
+                document.getElementById('bImage').value = publicUrl;
+                result.style.display = 'block';
+                result.innerHTML = `<i class="fas fa-check-circle"></i> Uploaded! <a href="${publicUrl}" target="_blank" style="color:var(--blue);font-weight:700;">View Image</a>`;
+                toast('Image uploaded successfully!', 'success');
+            } catch (e) {
+                bar.style.width = '0%'; prog.style.display = 'none';
+                toast('Upload failed: ' + e.message, 'error');
+            }
+        }
+        let isSavingEpaper = false;
         async function saveEpaper() {
+            if (isSavingEpaper) return;
             const date = document.getElementById('epDate').value;
             const edition = document.getElementById('epEdition').value;
             const pdfUrl = document.getElementById('epPdfUrl').value.trim();
             if (!date || !pdfUrl) { toast('Date and PDF are required', 'warning'); return; }
-            const ok = await sbInsert('epapers', { date, edition, pdf_url: pdfUrl, uploaded_at: new Date().toISOString() });
-            if (ok) { toast('Saved!', 'success'); closeModal('epaperModal'); loadEpapers(); }
-            else toast('Error saving', 'error');
+            
+            isSavingEpaper = true;
+            const btn = document.querySelector('#epaperModal .btn-primary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            try {
+                // Check if epaper already exists for this edition and date
+                const existing = await sbGet('epapers', `select=id&edition=eq.${edition}&date=eq.${date}`);
+                if (existing && existing.length > 0) {
+                    toast(`E-Paper already exists for ${edition} on ${date}!`, 'warning');
+                    return;
+                }
+                const ok = await sbInsert('epapers', { date, edition, pdf_url: pdfUrl, uploaded_at: new Date().toISOString() });
+                if (ok) { toast('Saved!', 'success'); closeModal('epaperModal'); loadEpapers(); }
+                else toast('Error saving', 'error');
+            } catch (e) {
+                console.error(e);
+                toast('Error saving e-paper', 'error');
+            } finally {
+                isSavingEpaper = false;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
         function deleteEpaper(id, date) {
             openConfirm('Delete?', `Delete e-paper for ${date}?`, async () => {
