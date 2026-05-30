@@ -2103,14 +2103,23 @@
         function editBlog(id) { const b = allBlogs.find(x => x.id === id); if (b) openBlogModal(b); }
         let isSavingBlog = false;
         async function saveBlog() {
-            if (isSavingBlog) return;
+            console.log("[saveBlog] Click event fired. Current isSavingBlog state:", isSavingBlog);
+            if (isSavingBlog) {
+                console.warn("[saveBlog] Duplicate click blocked! Save is currently in progress.");
+                return;
+            }
             const id = document.getElementById('blogId').value;
             const bTitle = document.getElementById('bTitle').value.trim();
             const bContent = document.getElementById('bContent').value.trim();
             const uploadLang = document.getElementById('bUploadLang').value;
-            if (!bTitle || !bContent) { toast('Title and Content are required', 'error'); return; }
+            if (!bTitle || !bContent) { 
+                console.warn("[saveBlog] Validation failed: Title or Content is empty.");
+                toast('Title and Content are required', 'error'); 
+                return; 
+            }
             
             isSavingBlog = true;
+            console.log("[saveBlog] Lock acquired. isSavingBlog is now set to true.");
             const btn = document.querySelector('#blogModal .btn-primary');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
@@ -2120,6 +2129,7 @@
             let titleHi = '', titleMr = '', titleEn = '';
             let contentHi = '', contentMr = '', contentEn = '';
             try {
+                console.log("[saveBlog] Beginning translations for language:", uploadLang);
                 if (uploadLang === 'hi') {
                     titleHi = bTitle; contentHi = bContent;
                     try {
@@ -2127,7 +2137,10 @@
                         titleEn = await translateText(bTitle, 'hi', 'en');
                         contentMr = await translateText(bContent, 'hi', 'mr');
                         contentEn = await translateText(bContent, 'hi', 'en');
-                    } catch (err) { titleMr = bTitle; titleEn = bTitle; contentMr = bContent; contentEn = bContent; }
+                    } catch (err) { 
+                        console.error("[saveBlog] Translation failed, falling back to original Hindi text:", err);
+                        titleMr = bTitle; titleEn = bTitle; contentMr = bContent; contentEn = bContent; 
+                    }
                 } else if (uploadLang === 'en') {
                     titleEn = bTitle; contentEn = bContent;
                     try {
@@ -2135,7 +2148,10 @@
                         titleHi = await translateText(bTitle, 'en', 'hi');
                         contentMr = await translateText(bContent, 'en', 'mr');
                         contentHi = await translateText(bContent, 'en', 'hi');
-                    } catch (err) { titleMr = bTitle; titleHi = bTitle; contentMr = bContent; contentEn = bContent; }
+                    } catch (err) { 
+                        console.error("[saveBlog] Translation failed, falling back to original English text:", err);
+                        titleMr = bTitle; titleHi = bTitle; contentMr = bContent; contentEn = bContent; 
+                    }
                 } else {
                     titleMr = bTitle; contentMr = bContent;
                     try {
@@ -2143,7 +2159,10 @@
                         titleEn = await translateText(bTitle, 'mr', 'en');
                         contentHi = await translateText(bContent, 'mr', 'hi');
                         contentEn = await translateText(bContent, 'mr', 'en');
-                    } catch (err) { titleHi = bTitle; titleEn = bTitle; contentHi = bContent; contentEn = bContent; }
+                    } catch (err) { 
+                        console.error("[saveBlog] Translation failed, falling back to original Marathi text:", err);
+                        titleHi = bTitle; titleEn = bTitle; contentHi = bContent; contentEn = bContent; 
+                    }
                 }
                 const body = {
                     title_hi: titleHi, title_mr: titleMr, title_en: titleEn,
@@ -2155,14 +2174,23 @@
                     is_featured: document.getElementById('bFeatured').classList.contains('on'),
                     published_at: new Date().toISOString()
                 };
+                console.log("[saveBlog] Sending payload to Supabase:", body);
                 const ok = id ? await sbUpdate('blogs', id, body) : await sbInsert('blogs', body);
-                if (ok) { toast(id ? 'Blog updated!' : 'Blog created!', 'success'); closeModal('blogModal'); loadBlogs(); }
-                else toast('Error saving blog', 'error');
+                console.log("[saveBlog] Supabase response received:", ok);
+                if (ok) { 
+                    toast(id ? 'Blog updated!' : 'Blog created!', 'success'); 
+                    closeModal('blogModal'); 
+                    loadBlogs(); 
+                } else { 
+                    console.error("[saveBlog] Database operation returned null/failed.");
+                    toast('Error saving blog', 'error'); 
+                }
             } catch (e) {
-                console.error(e);
+                console.error("[saveBlog] Exception occurred during save process:", e);
                 toast('Error saving blog', 'error');
             } finally {
                 isSavingBlog = false;
+                console.log("[saveBlog] Lock released. isSavingBlog is now set to false.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -2261,13 +2289,22 @@
         function editVideo(id) { const v = allVideos.find(x => x.id === id); if (v) openVideoModal(v); }
         let isSavingVideo = false;
         async function saveVideo() {
-            if (isSavingVideo) return;
+            console.log("[saveVideo] Click event fired. Current isSavingVideo state:", isSavingVideo);
+            if (isSavingVideo) {
+                console.warn("[saveVideo] Duplicate click blocked! Save is currently in progress.");
+                return;
+            }
             const id = document.getElementById('videoId').value;
             const ytId = document.getElementById('vYtId').value.trim();
             const title = document.getElementById('vTitleHi').value.trim();
-            if (!ytId || !title) { toast('YouTube URL and title are required', 'error'); return; }
+            if (!ytId || !title) { 
+                console.warn("[saveVideo] Validation failed: YouTube ID or title is missing.");
+                toast('YouTube URL and title are required', 'error'); 
+                return; 
+            }
             
             isSavingVideo = true;
+            console.log("[saveVideo] Lock acquired. isSavingVideo is now set to true.");
             const btn = document.querySelector('#videoModal .btn-primary');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
@@ -2282,14 +2319,23 @@
             };
             
             try {
+                console.log("[saveVideo] Sending payload to Supabase:", body);
                 const ok = id ? await sbUpdate('youtube_videos', id, body) : await sbInsert('youtube_videos', body);
-                if (ok) { toast('Saved!', 'success'); closeModal('videoModal'); loadVideos(); }
-                else toast('Error saving video', 'error');
+                console.log("[saveVideo] Supabase response received:", ok);
+                if (ok) { 
+                    toast('Saved!', 'success'); 
+                    closeModal('videoModal'); 
+                    loadVideos(); 
+                } else { 
+                    console.error("[saveVideo] Supabase operation returned null/failed.");
+                    toast('Error saving video', 'error'); 
+                }
             } catch (e) {
-                console.error(e);
+                console.error("[saveVideo] Exception occurred during save process:", e);
                 toast('Error saving video', 'error');
             } finally {
                 isSavingVideo = false;
+                console.log("[saveVideo] Lock released. isSavingVideo is now set to false.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -2426,33 +2472,54 @@
         }
         let isSavingEpaper = false;
         async function saveEpaper() {
-            if (isSavingEpaper) return;
+            console.log("[saveEpaper] Click event fired. Current isSavingEpaper state:", isSavingEpaper);
+            if (isSavingEpaper) {
+                console.warn("[saveEpaper] Duplicate click blocked! Save is currently in progress.");
+                return;
+            }
             const date = document.getElementById('epDate').value;
             const edition = document.getElementById('epEdition').value;
             const pdfUrl = document.getElementById('epPdfUrl').value.trim();
-            if (!date || !pdfUrl) { toast('Date and PDF are required', 'warning'); return; }
+            if (!date || !pdfUrl) { 
+                console.warn("[saveEpaper] Validation failed: Date or PDF URL is missing.");
+                toast('Date and PDF are required', 'warning'); 
+                return; 
+            }
             
             isSavingEpaper = true;
+            console.log("[saveEpaper] Lock acquired. isSavingEpaper is now set to true.");
             const btn = document.querySelector('#epaperModal .btn-primary');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
             btn.disabled = true;
 
             try {
-                // Check if epaper already exists for this edition and date
+                console.log("[saveEpaper] Checking database for existing entry on edition:", edition, "and date:", date);
                 const existing = await sbGet('epapers', `select=id&edition=eq.${edition}&date=eq.${date}`);
+                console.log("[saveEpaper] Database lookup result:", existing);
                 if (existing && existing.length > 0) {
+                    console.warn("[saveEpaper] Duplicate check failed: Entry already exists for this edition and date.");
                     toast(`E-Paper already exists for ${edition} on ${date}!`, 'warning');
                     return;
                 }
-                const ok = await sbInsert('epapers', { date, edition, pdf_url: pdfUrl, uploaded_at: new Date().toISOString() });
-                if (ok) { toast('Saved!', 'success'); closeModal('epaperModal'); loadEpapers(); }
-                else toast('Error saving', 'error');
+                const payload = { date, edition, pdf_url: pdfUrl, uploaded_at: new Date().toISOString() };
+                console.log("[saveEpaper] Sending payload to Supabase:", payload);
+                const ok = await sbInsert('epapers', payload);
+                console.log("[saveEpaper] Supabase response received:", ok);
+                if (ok) { 
+                    toast('Saved!', 'success'); 
+                    closeModal('epaperModal'); 
+                    loadEpapers(); 
+                } else { 
+                    console.error("[saveEpaper] Supabase operation returned null/failed.");
+                    toast('Error saving', 'error'); 
+                }
             } catch (e) {
-                console.error(e);
+                console.error("[saveEpaper] Exception occurred during save process:", e);
                 toast('Error saving e-paper', 'error');
             } finally {
                 isSavingEpaper = false;
+                console.log("[saveEpaper] Lock released. isSavingEpaper is now set to false.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
