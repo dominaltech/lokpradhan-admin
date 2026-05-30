@@ -1477,8 +1477,13 @@
                         <div class="sc-head">
                             <div class="sc-title"><i class="fab fa-youtube"
                                     style="color:#FF0000;margin-right:6px;"></i>YouTube Videos</div>
-                            <button class="btn btn-primary btn-sm" onclick="openVideoModal()"><i
-                                    class="fas fa-plus"></i>Add Video</button>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <button class="btn btn-secondary btn-sm" id="cleanDupsBtn" onclick="deleteDuplicateVideos()" style="background:var(--orange-bg);color:var(--orange);border:1.5px solid var(--orange);display:none;">
+                                    <i class="fas fa-broom"></i> Clean Duplicates
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="openVideoModal()"><i
+                                        class="fas fa-plus"></i>Add Video</button>
+                            </div>
                         </div>
                         <div class="sc-body">
                             <div class="tbl-wrap">
@@ -2210,6 +2215,43 @@
             allVideos = await sbGet('youtube_videos', 'select=*&order=published_at.desc') || [];
             renderVideosTable(allVideos);
         }
+        async function deleteDuplicateVideos() {
+            const btn = document.getElementById('cleanDupsBtn');
+            if (!confirm('This will permanently delete all duplicate YouTube video entries from the database, keeping only the most recent copy of each video. Continue?')) return;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cleaning...';
+            btn.disabled = true;
+            try {
+                const all = await sbGet('youtube_videos', 'select=id,youtube_id&order=published_at.desc') || [];
+                const seen = new Set();
+                const toDelete = [];
+                for (const v of all) {
+                    const key = (v.youtube_id || '').trim();
+                    if (!key) continue;
+                    if (seen.has(key)) {
+                        toDelete.push(v.id); // This is an older duplicate — delete it
+                    } else {
+                        seen.add(key);
+                    }
+                }
+                if (toDelete.length === 0) {
+                    toast('No duplicates found! Your database is clean.', 'success');
+                } else {
+                    let deleted = 0;
+                    for (const id of toDelete) {
+                        const ok = await sbDelete('youtube_videos', id);
+                        if (ok) deleted++;
+                    }
+                    toast(`Cleaned! Removed ${deleted} duplicate video(s) from the database.`, 'success');
+                    await loadVideos();
+                }
+            } catch (e) {
+                console.error('[deleteDuplicateVideos] Error:', e);
+                toast('Error cleaning duplicates. Please try again.', 'error');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-broom"></i> Clean Duplicates';
+                btn.disabled = false;
+            }
+        }
         function renderVideosTable(data) {
             const tbody = document.getElementById('videosBody');
             const empty = document.getElementById('videosEmpty');
@@ -2229,6 +2271,10 @@
                     }
                 }
             }
+
+            // Show/hide the Clean Duplicates button based on whether duplicates exist
+            const cleanBtn = document.getElementById('cleanDupsBtn');
+            if (cleanBtn) cleanBtn.style.display = duplicateIds.size > 0 ? 'inline-flex' : 'none';
 
             tbody.innerHTML = data.map(v => {
                 const isDup = v.youtube_id && duplicateIds.has(v.youtube_id.trim());
