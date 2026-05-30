@@ -2187,9 +2187,27 @@
             const empty = document.getElementById('videosEmpty');
             if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
             empty.style.display = 'none';
-            tbody.innerHTML = data.map(v => `<tr>
+
+            // Track duplicates
+            const seenIds = new Set();
+            const duplicateIds = new Set();
+            for (const v of data) {
+                if (v.youtube_id) {
+                    const trimmedId = v.youtube_id.trim();
+                    if (seenIds.has(trimmedId)) {
+                        duplicateIds.add(trimmedId);
+                    } else {
+                        seenIds.add(trimmedId);
+                    }
+                }
+            }
+
+            tbody.innerHTML = data.map(v => {
+                const isDup = v.youtube_id && duplicateIds.has(v.youtube_id.trim());
+                const dupBadge = isDup ? `<span class="badge badge-orange" style="margin-left: 6px;"><i class="fas fa-exclamation-triangle"></i> DUPLICATE</span>` : '';
+                return `<tr>
     <td><img class="yt-thumb" src="https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg" alt="thumb"></td>
-    <td>${v.title_hi || '–'}</td>
+    <td>${v.title_hi || '–'}${dupBadge}</td>
     <td>${v.duration || '–'}</td>
     <td>${v.views || '–'}</td>
     <td>${v.is_live ? '<span class="badge badge-red">🔴 LIVE</span>' : '<span class="badge badge-gray">–</span>'}</td>
@@ -2198,7 +2216,8 @@
       <button class="btn btn-blue btn-sm" onclick="editVideo('${v.id}')"><i class="fas fa-edit"></i></button>
       <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}','${(v.title_hi || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
     </div></td>
-  </tr>`).join('');
+  </tr>`;
+            }).join('');
         }
         function extractYoutubeId(url) {
             if (!url) return null;
