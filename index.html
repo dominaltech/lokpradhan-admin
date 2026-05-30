@@ -2335,22 +2335,16 @@
         function editVideo(id) { const v = allVideos.find(x => x.id === id); if (v) openVideoModal(v); }
         let isSavingVideo = false;
         async function saveVideo() {
-            console.log("[saveVideo] Click event fired. Current isSavingVideo state:", isSavingVideo);
-            if (isSavingVideo) {
-                console.warn("[saveVideo] Duplicate click blocked! Save is currently in progress.");
-                return;
-            }
+            if (isSavingVideo) return;
             const id = document.getElementById('videoId').value;
             const ytId = document.getElementById('vYtId').value.trim();
             const title = document.getElementById('vTitleHi').value.trim();
             if (!ytId || !title) { 
-                console.warn("[saveVideo] Validation failed: YouTube ID or title is missing.");
                 toast('YouTube URL and title are required', 'error'); 
                 return; 
             }
             
             isSavingVideo = true;
-            console.log("[saveVideo] Lock acquired. isSavingVideo is now set to true.");
             const btn = document.querySelector('#videoModal .btn-primary');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
@@ -2365,23 +2359,39 @@
             };
             
             try {
-                console.log("[saveVideo] Sending payload to Supabase:", body);
+                // If this is a new video (not editing), check if this youtube_id ALREADY exists
+                // to prevent duplicate rows from being created
+                if (!id) {
+                    const existing = await sbGet('youtube_videos', `select=id&youtube_id=eq.${ytId}`);
+                    if (existing && existing.length > 0) {
+                        // Already exists — UPDATE instead of INSERT
+                        const existingId = existing[0].id;
+                        console.log('[saveVideo] youtube_id already exists, updating instead of inserting. ID:', existingId);
+                        const ok = await sbUpdate('youtube_videos', existingId, body);
+                        if (ok) { 
+                            toast('Video already existed — updated successfully!', 'success'); 
+                            closeModal('videoModal'); 
+                            loadVideos(); 
+                        } else { 
+                            toast('Error updating video', 'error'); 
+                        }
+                        return;
+                    }
+                }
+                // Safe to insert (no duplicate found) or editing existing record
                 const ok = id ? await sbUpdate('youtube_videos', id, body) : await sbInsert('youtube_videos', body);
-                console.log("[saveVideo] Supabase response received:", ok);
                 if (ok) { 
-                    toast('Saved!', 'success'); 
+                    toast(id ? 'Video updated!' : 'Video added!', 'success'); 
                     closeModal('videoModal'); 
                     loadVideos(); 
                 } else { 
-                    console.error("[saveVideo] Supabase operation returned null/failed.");
                     toast('Error saving video', 'error'); 
                 }
             } catch (e) {
-                console.error("[saveVideo] Exception occurred during save process:", e);
+                console.error('[saveVideo] Error:', e);
                 toast('Error saving video', 'error');
             } finally {
                 isSavingVideo = false;
-                console.log("[saveVideo] Lock released. isSavingVideo is now set to false.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
